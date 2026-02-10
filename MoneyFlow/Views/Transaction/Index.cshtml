@@ -1,0 +1,150 @@
+﻿
+@{
+}
+
+<div class="row mt-4">
+    <div class="col-sm-6 offset-3">
+        <h2>Nueva Transacción</h2>
+        <form asp-controller="Service" asp-action="New" method="post">
+            <div class="mb-3">
+                <label class="form-label">Tipo</label>
+                <select class="form-select" id="cboTipoServicio" onchange="mostrarServicios()">
+                    <option value="0" disabled selected>--Seleccione una opcion--</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+                
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Servicio</label>
+                <select class="form-select" id="cboServicio">
+                    <option value="0" disabled selected>Seleccione una opción</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Comentario</label>
+                <input type="text" class="form-control" id="txtComentario" autocomplete="off">
+
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="txtFecha" autocomplete="off">
+                
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Monto Total</label>
+                <input type="number" class="form-control" id="txtCantidadTotal" autocomplete="off">
+
+            </div>
+
+
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-success" type="button" onclick="guardarTransaccion()">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles{
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container .select2-selection--single{
+            height: 38px;
+            padding-top: 4px;
+        }
+    </style>
+}
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+       $(document).ready(function() {
+            $('#cboServicio').select2({
+                 placeholder: 'Seleccione un servicio',
+                  width: '100%',
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            $('#txtFecha').val(today);
+        });
+
+        async function mostrarServicios(){
+            const tipoServicio = $("#cboTipoServicio").val();
+
+            const response = await fetch(`/Transaction/ServicesByType?typeService=${tipoServicio}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+             })
+
+             if(response.ok){
+                 const data = await response.json();
+                  console.log(data);
+
+                 const serviceSelect = $("#cboServicio");
+                    serviceSelect.empty();
+                    serviceSelect.append(new Option());
+                 
+                 data.forEach((item) => {
+                      serviceSelect.append(new Option(item.name, item.serviceId));
+                  });
+
+                  serviceSelect.trigger("change.select2")
+             }
+        }
+
+        async function guardarTransaccion(){
+            const modelDto = {
+                serviceId: $("#cboServicio").val(),
+                comment: $("#txtComentario").val(),
+                date: $("#txtFecha").val(),
+                totalAmount: parseFloat($("#txtCantidadTotal").val())
+            }
+            const response = await fetch('/Transaction/New', 
+            {
+                 method: 'POST',
+                 headers: {
+                    'Content-Type': 'application/json'
+                 },
+                 body: JSON.stringify(modelDto)
+            })
+            if(response.ok){
+                 const data = await response.json();
+                 if(data != 0){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Transacción guardada',
+                        showConfirmButton: false,
+                        timer: 1500
+                     });
+                      setTimeout(() => {
+                         location.reload();
+                       }, 1500);
+                 }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al guardar la transacción',
+                        showConfirmButton: false,
+                        timer: 1500
+                      });
+                      setTimeout(() => {
+                          location.reload();
+                        }, 1500);
+                }
+            }
+        }
+            
+
+    </script>
+
+}
+   

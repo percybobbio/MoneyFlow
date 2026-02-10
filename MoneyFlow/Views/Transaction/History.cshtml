@@ -1,0 +1,95 @@
+﻿
+@{
+}
+
+<h2>Historial Transacciones</h2>
+<div class="row align-items-end mb-4">
+    <div class="col-sm-3">
+        <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Fecha Inicio</label>
+            <input type="date" class="form-control" id="txtFechaInicial">
+            
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Fecha Final</label>
+            <input type="date" class="form-control" id="txtFechaFinal">
+
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="mb-3">
+            <button type="button" class="btn btn-primary" onclick="buscarTransacciones()">Buscar</button>
+
+        </div>
+    </div>
+</div>
+<hr />
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <table id="myTable" class="display">
+            
+        </table>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css" />
+}
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/2.3.7/js/dataTables.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            const today = new Date().toISOString().split('T')[0];
+            $('#txtFechaInicial').val(today);
+            $('#txtFechaFinal').val(today);
+
+
+            $('#myTable').DataTable({
+                "processing": true,
+                "serverSide": true,
+                ajax: {
+                    url: "/Transaction/HistoryTransaction?startDate=1999/01/01&endDate=1999/01/30",
+                    type: "GET",
+                    dataSrc: "data",
+                    datatype: "json"
+                },
+                columns: [
+                    { title: "Fecha", "data": "date", width: "150px" },
+                    { title: "Mes", "data": "month", width: "150px" },
+                    { title: "Tipo de Servicio", "data": "typeService", width: "150px" },
+                    { title: "Servicio", "data": "serviceName", width: "150px" },
+                    { title: "Monto Total", "data": "totalAmount", width: "150px" },
+                    { title: "Comentario", "data": "comment", width: "150px"}
+                ],
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                layout: {
+                    topStart: 'buttons'
+                }
+            });
+        });
+
+        function buscarTransacciones(){
+            const fechaInicial = $('#txtFechaInicial').val();
+            const fechaFinal = $('#txtFechaFinal').val();
+            $('#myTable').DataTable().ajax.url(`/Transaction/HistoryTransaction?startDate=${fechaInicial}&endDate=${fechaFinal}`).load();
+        }
+        
+    </script>
+}
+
+
